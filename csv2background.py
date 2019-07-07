@@ -52,6 +52,29 @@ class Configurations:
         return self.config[key]
 
 
+class CSV2Scene:
+
+    def __init__(self, config_file):
+        self.config = Configurations()
+        self.config.load_config(config_file)
+        self._modify_config_for_scene()
+
+    def _modify_config_for_scene(self):
+        margins = self.config['margins']
+        margins['top'] = 0
+        margins['bottom'] = 0
+        margins['left'] = 0
+        margins['right'] = 0
+        self.config.config['gridsize'] = 16
+
+    def generate(self, scene_grid, output_file):
+        field_grid = FieldGrid()
+        field_grid.grid = scene_grid
+        field_grid.height = len(scene_grid)
+        field_grid.width = len(scene_grid[0])
+        genbg(self.config, field_grid, output_file)
+
+
 def genbg(config, field_grid, outpng):
     gridsize = config['gridsize']
     width = gridsize * field_grid.width

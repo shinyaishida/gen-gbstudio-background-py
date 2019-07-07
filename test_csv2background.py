@@ -1,5 +1,14 @@
 import pytest
+import hashlib
 import csv2background
+
+
+def get_hash(filename):
+    m = hashlib.sha256()
+    with open(filename, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b''):
+            m.update(chunk)
+    return m.hexdigest()
 
 
 def test_load_field_grid():
@@ -35,3 +44,13 @@ def test_load_config():
     assert layout['7'] == ''
     assert layout['8'] == ''
     assert layout['9'] == './sample/tiles/tree.png'
+
+
+def test_generate_scene_image():
+    csv2scene = csv2background.CSV2Scene('sample/config.json')
+    test_scene = [['2'] * 16] * 16
+    output_filename = 'test.png'
+    csv2scene.generate(test_scene, output_filename)
+    hash = get_hash(output_filename)
+    expected = 'c2026d0e576de9cc612a38ef525a7c3f79c542fb5df699563719574795a65a4b'
+    assert hash == expected, 'got "%s" but expect "%s"' % (hash, expected)
