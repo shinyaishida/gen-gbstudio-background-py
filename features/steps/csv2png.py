@@ -2,6 +2,10 @@ from behave import given, when, then
 import subprocess
 import hashlib
 import os
+import shutil
+
+
+ERROR_MSG = 'got "%s" but expected "%s"'
 
 
 def run_command(command):
@@ -42,4 +46,28 @@ def we_run_the_composer(context):
 def we_get_an_output_file_in_png_like_this_image(context, image):
     hash = context.got_hash
     expected = get_hash(image)
-    assert hash == expected, 'got "%s" but expected "%s"' % (hash, expected)
+    assert hash == expected, ERROR_MSG % (hash, expected)
+
+
+@given('we have a scene "{grid}" file in CSV')
+def we_have_a_scene_grid_file_in_csv(context, grid):
+    context.subprocess_cmd = ['python', 'csv2scenes.py', grid]
+
+
+@when('we run the generator')
+def we_run_the_generator(context):
+    output_dirname = 'test-output'
+    context.subprocess_cmd.extend(['--output', output_dirname])
+    os.makedirs(output_dirname, exist_ok=True)
+    subprocess.run(context.subprocess_cmd)
+    context.got_hashes = [get_hash(os.path.join(output_dirname, f))
+                          for f in os.listdir(output_dirname)]
+    shutil.rmtree(output_dirname)
+
+
+@then('we get a series of PNG files like those in "{directory}"')
+def we_get_a_series_of_png_files_like_those_in_directory(context, directory):
+    hashes = context.got_hashes
+    expected = [get_hash(os.path.join(directory, f))
+                for f in os.listdir(directory)]
+    assert hashes == expected, ERROR_MSG % (hashes, expected)
