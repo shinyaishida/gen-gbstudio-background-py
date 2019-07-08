@@ -1,5 +1,6 @@
 import pytest
 import hashlib
+import os
 import csv2background
 
 
@@ -52,5 +53,6 @@ def test_generate_scene_image():
     output_filename = 'test.png'
     csv2scene.generate(test_scene, output_filename)
     hash = get_hash(output_filename)
+    os.remove(output_filename)
     expected = 'c2026d0e576de9cc612a38ef525a7c3f79c542fb5df699563719574795a65a4b'
     assert hash == expected, 'got "%s" but expect "%s"' % (hash, expected)
